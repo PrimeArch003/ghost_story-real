@@ -1,11 +1,11 @@
 import streamlit as st
-import os
 from openai import OpenAI
 
-# Create OpenAI client using environment variable
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Use Streamlit Secrets for your OpenAI API key (safe, no key in code!)
+client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 
 st.title("Ghost Mode AI Story Generator 👻")
+
 
 # Story prompt input
 prompt = st.text_input("Enter your story prompt:", key="story_prompt")
