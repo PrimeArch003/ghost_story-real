@@ -18,7 +18,7 @@ st.set_page_config(page_title="BlueGhost Studio", page_icon="👻", layout="cent
 USERS_FILE = Path("users.json")
 STORIES_FILE = Path("stories.json")
 
-# Create empty files if they don't exist
+# Create files if they don't exist
 if not USERS_FILE.exists():
     USERS_FILE.write_text(json.dumps({}))
 if not STORIES_FILE.exists():
@@ -35,7 +35,6 @@ with open(STORIES_FILE) as f:
 # ----------------------------
 # Streamlit Authenticator Setup
 # ----------------------------
-# If users exist, use usernames + passwords
 credentials = {"usernames": {}}
 for username, info in users_db.items():
     credentials["usernames"][username] = {"name": info["name"], "password": info["password"]}
@@ -47,10 +46,35 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=30
 )
 
+# ----------------------------
 # Login / Signup
+# ----------------------------
 name, authentication_status, username = authenticator.login("Login", "main")
 
 if authentication_status:
+
+    # ----------------------------
+    # Floating ghost background (visual only)
+    # ----------------------------
+    st.markdown(
+        """
+        <style>
+        body {
+            background-color: #0a0a0a;
+            background-image: url('https://i.imgur.com/1lKf1wC.png');
+            background-size: cover;
+            animation: float 30s infinite linear;
+        }
+        @keyframes float {
+            0% { background-position: 0 0; }
+            50% { background-position: 50% 50%; }
+            100% { background-position: 0 0; }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
     # ----------------------------
     # Sidebar Navigation
     # ----------------------------
@@ -106,18 +130,28 @@ if authentication_status:
                     with open(STORIES_FILE, "w") as f:
                         json.dump(stories_db, f)
 
-                    # Display story
-                    st.subheader("📖 Your Generated Story")
+                    # Display story in scrollable, glowing card
                     style_css = theme_styles.get(style, "background-color:#111111;color:white;")
+                    st.subheader("📖 Your Generated Story")
                     st.markdown(
-                        f"<div style='{style_css} padding:20px; border-radius:10px; max-height:400px; overflow-y:auto'>{story}</div>",
+                        f"""
+                        <div style='{style_css} padding:20px; border-radius:10px; max-height:400px; overflow-y:auto; box-shadow:0 0 15px #00ffff; animation: glow 2s infinite alternate'>
+                            {story}
+                        </div>
+                        <style>
+                        @keyframes glow {{
+                            from {{ box-shadow:0 0 10px #00ffff; }}
+                            to {{ box-shadow:0 0 20px #00ffff; }}
+                        }}
+                        </style>
+                        """,
                         unsafe_allow_html=True
                     )
                     st.info(f"Word count: {len(story.split())}")
                     st.download_button("Download Story", story, f"{style}_story.txt", "text/plain")
 
     # ----------------------------
-    # PROFILE PAGE
+    # PROFILE PAGE - Animated Story Cards
     # ----------------------------
     elif page == "Profile":
         st.header(f"{name}'s Profile 👻")
@@ -127,18 +161,18 @@ if authentication_status:
         if not user_stories:
             st.info("No stories yet. Go to Home to generate some!")
         else:
-            # Lottie ghost animation
             def load_lottieurl(url: str):
                 r = requests.get(url)
                 if r.status_code != 200:
                     return None
                 return r.json()
 
-            lottie_ghost = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_jtbfg2nb.json") # ghost animation
+            lottie_ghost = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_jtbfg2nb.json")
+
             for idx, entry in enumerate(reversed(user_stories), 1):
                 st.markdown(f"**{idx}. [{entry['style']}] {entry['prompt']}**")
                 st.markdown(
-                    f"<div style='background-color:#111111;color:white;padding:10px;border-radius:5px; max-height:200px; overflow-y:auto'>{entry['story']}</div>",
+                    f"<div style='background-color:#111111;color:#a0e7e5;padding:10px;border-radius:10px; max-height:200px; overflow-y:auto; box-shadow:0 0 15px #00ffff; animation: glow 2s infinite alternate'>{entry['story']}</div>",
                     unsafe_allow_html=True
                 )
                 st_lottie(lottie_ghost, height=100)
@@ -180,12 +214,13 @@ if authentication_status:
             st.markdown(f"**Name:** {name_char}")
             st.markdown(f"**Personality:** {personality}")
             st.markdown(f"**Special Quirk:** {quirk}")
+
             # Small ghost animation
             lottie_char = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_jtbfg2nb.json")
             st_lottie(lottie_char, height=150)
 
 # ----------------------------
-# Login failed
+# Login Failed
 # ----------------------------
 elif authentication_status is False:
     st.error("Username/password is incorrect")
