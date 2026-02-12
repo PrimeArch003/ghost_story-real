@@ -1,0 +1,38 @@
+Blueghost AI Story Generator 🌌👻
+
+What it does:
+
+User Input Prompt: You type in any story idea or scenario.
+
+Story Style Selector: You choose a style for your story:
+
+Horror 😈
+
+Sci-Fi 🚀
+
+Romance ❤️
+
+Adventure 🗺️
+
+Comedy 😆
+
+AI-Powered Story Generation:
+
+Uses OpenAI’s gpt-4o-mini model to craft creative, engaging stories based on your prompt and chosen style.
+
+Word Counter:
+
+Instantly shows the number of words in your generated story.
+
+Download Option:
+
+Lets you download the story as a .txt file for saving or sharing.
+
+Secure API Setup:
+
+Your OpenAI API key is hidden in an environment variable → safe from leaks.
+
+In short:
+
+You type an idea → pick a style → AI generates a story → you can check word count and download it.
+It’s your personal ghostly storytelling machine! 👻💥
