@@ -13,45 +13,36 @@ import streamlit_authenticator as stauth
 st.set_page_config(page_title="BlueGhost Studio", page_icon="👻", layout="centered")
 
 # ----------------------------
-# User / Story Storage Setup
+# Story Storage Setup
 # ----------------------------
-USERS_FILE = Path("users.json")
 STORIES_FILE = Path("stories.json")
 
-# Create files if they don't exist
-if not USERS_FILE.exists():
-    USERS_FILE.write_text(json.dumps({}))
 if not STORIES_FILE.exists():
     STORIES_FILE.write_text(json.dumps({}))
 
-# Load users
-with open(USERS_FILE) as f:
-    users_db = json.load(f)
-
-# Load stories
 with open(STORIES_FILE) as f:
     stories_db = json.load(f)
 
 # ----------------------------
 # Streamlit Authenticator Setup
 # ----------------------------
-credentials = {"usernames": {}}
-for username, info in users_db.items():
-    credentials["usernames"][username] = {"name": info["name"], "password": info["password"]}
-
 authenticator = stauth.Authenticate(
-    credentials,
-    "blueghost_cookie",
-    "blueghost_signature",
-    cookie_expiry_days=30
+    st.secrets["credentials"],
+    st.secrets["cookie"]["name"],
+    st.secrets["cookie"]["key"],
+    st.secrets["cookie"]["expiry_days"]
 )
 
 # ----------------------------
-# Login / Signup
+# Login
 # ----------------------------
-name, authentication_status, username = authenticator.login("Login", "main")
+name, authentication_status, username = authenticator.login()
 
 if authentication_status:
+    # ----------------------------
+    # Logout in sidebar
+    # ----------------------------
+    authenticator.logout("Logout", "sidebar")
 
     # ----------------------------
     # Floating ghost background (visual only)
@@ -79,7 +70,6 @@ if authentication_status:
     # Sidebar Navigation
     # ----------------------------
     page = st.sidebar.radio("Go to", ["Home", "Profile", "Tips", "Ghost Character"])
-    authenticator.logout("Logout", "sidebar")
 
     # ----------------------------
     # OpenAI Client
@@ -87,7 +77,7 @@ if authentication_status:
     client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 
     # ----------------------------
-    # Genre Theme Styles
+    # Theme Styles
     # ----------------------------
     theme_styles = {
         "Horror": "background-color:#0d1b2a;color:#a0e7e5;font-family:serif;text-shadow:0 0 8px #a0e7e5;",
@@ -98,7 +88,7 @@ if authentication_status:
     }
 
     # ----------------------------
-    # HOME PAGE - Story Generator
+    # HOME PAGE
     # ----------------------------
     if page == "Home":
         st.markdown(f"<h1 style='text-align:center;'>👻 BlueGhost AI - Welcome {name}</h1>", unsafe_allow_html=True)
@@ -123,14 +113,14 @@ if authentication_status:
                     )
                     story = response.choices[0].message["content"]
 
-                    # Save story to user in JSON
+                    # Save story in JSON
                     user_stories = stories_db.get(username, [])
                     user_stories.append({"prompt": prompt, "style": style, "story": story})
                     stories_db[username] = user_stories
                     with open(STORIES_FILE, "w") as f:
                         json.dump(stories_db, f)
 
-                    # Display story in scrollable, glowing card
+                    # Display story
                     style_css = theme_styles.get(style, "background-color:#111111;color:white;")
                     st.subheader("📖 Your Generated Story")
                     st.markdown(
@@ -151,7 +141,7 @@ if authentication_status:
                     st.download_button("Download Story", story, f"{style}_story.txt", "text/plain")
 
     # ----------------------------
-    # PROFILE PAGE - Animated Story Cards
+    # PROFILE PAGE
     # ----------------------------
     elif page == "Profile":
         st.header(f"{name}'s Profile 👻")
@@ -215,12 +205,11 @@ if authentication_status:
             st.markdown(f"**Personality:** {personality}")
             st.markdown(f"**Special Quirk:** {quirk}")
 
-            # Small ghost animation
             lottie_char = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_jtbfg2nb.json")
             st_lottie(lottie_char, height=150)
 
 # ----------------------------
-# Login Failed
+# Login Failed / None
 # ----------------------------
 elif authentication_status is False:
     st.error("Username/password is incorrect")
