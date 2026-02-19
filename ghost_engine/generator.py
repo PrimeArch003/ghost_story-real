@@ -1,25 +1,44 @@
-from openai import OpenAI
-import streamlit as st
+# ghost_engine/generator.py
+import random
 
-client = OpenAI(api_key=st.secrets["openai"]["api_key"])
+# Simulated story generation for offline/free testing
+def generate_story(prompt: str, style: str) -> str:
+    """
+    Generates a placeholder story in the given style without API.
+    """
+    starters = {
+        "Horror": [
+            "It was a dark and stormy night...",
+            "Shadows crept across the abandoned hallway...",
+            "A cold wind whispered through the empty house..."
+        ],
+        "Sci-Fi": [
+            "In the year 3026, humanity colonized Mars...",
+            "The spaceship glided silently through the asteroid field...",
+            "AI beings debated the fate of the universe..."
+        ],
+        "Romance": [
+            "Under the glowing sunset, their hands met...",
+            "A soft melody filled the quiet café as they locked eyes...",
+            "Love blossomed where least expected..."
+        ],
+        "Adventure": [
+            "The jungle was thick, but our hero pressed onward...",
+            "Mountains loomed as the expedition reached its peak...",
+            "With a leap of faith, the treasure seeker descended into the cave..."
+        ],
+        "Comedy": [
+            "He slipped on a banana peel and somehow landed in a pie...",
+            "The talking dog refused to fetch the newspaper...",
+            "A series of unfortunate yet hilarious events unfolded..."
+        ]
+    }
 
-def generate_story(prompt, style):
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=f"You are a creative writer. Write in a {style} style.\n\n{prompt}",
-        max_output_tokens=400,
-        temperature=0.8
-    )
+    # Pick a random starter from the chosen style
+    starter = random.choice(starters.get(style, ["Once upon a time..."]))
 
-    return response.output[0].content[0].text
+    # Simulate story extension
+    filler = " " + " ".join([f"{prompt}... continues." for _ in range(random.randint(2, 5))])
 
+    return starter + filler
 
-def continue_story(previous_story, style):
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=f"Continue this story in {style} style:\n\n{previous_story}",
-        max_output_tokens=400,
-        temperature=0.85
-    )
-
-    return response.output[0].content[0].text
